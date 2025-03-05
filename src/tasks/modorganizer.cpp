@@ -167,8 +167,8 @@ namespace mob::tasks {
             if (!git_wrap::remote_branch_exists(url, branch)) {
                 if (!fallback_org.empty()) {
                     cx().warning(context::generic,
-                                 "{} has no remote {} branch, switching to {} from {}",
-                                 repo_, branch, fallback, fallback_org);
+                                 "{} does not exist on {}, switching to {}", repo_,
+                                 task_conf().mo_fallback_org(), fallback_org);
                     url    = make_git_url(fallback_org, repo_);
                     branch = task_conf().mo_branch();
                 }
