@@ -164,6 +164,7 @@ namespace mob {
         }
 
         std::string mo_org() const { return get("mo_org"); }
+        std::string mo_fallback_org() const { return get("mo_fallback_org"); }
         std::string mo_branch() const { return get("mo_branch"); }
         std::string mo_fallback_branch() const { return get("mo_fallback"); }
         bool no_pull() const { return get<bool>("no_pull"); }

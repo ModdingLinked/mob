@@ -61,8 +61,22 @@ namespace mob::tasks {
 
     void usvfs::fetch_from_source()
     {
+        auto branch             = task_conf().mo_branch();
+        auto url                = make_git_url(task_conf().mo_org(), "usvfs");
+
+        // check fallback organization
+        if (!git_wrap::remote_branch_exists(url, branch)) {
+            const auto fallback_org = task_conf().mo_fallback_org();
+            if (!fallback_org.empty()) {
+                cx().warning(context::generic,
+                             "{} does not exist on {}, switching to {}", "usvfs",
+                             task_conf().mo_org(), fallback_org);
+                url    = make_git_url(fallback_org, "usvfs");
+            }
+        }
+
         run_tool(make_git()
-                     .url(make_git_url(task_conf().mo_org(), "usvfs"))
+                     .url(url)
                      .branch(version())
                      .root(source_path()));
     }

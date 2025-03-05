@@ -149,18 +149,34 @@ namespace mob::tasks {
         // make sure the super directory is initialized, only done once
         initialize_super(cx(), super_path());
 
-        // find the best suitable branch
-        const auto fallback = task_conf().mo_fallback_branch();
-        auto branch         = task_conf().mo_branch();
-        if (!fallback.empty() && !git_wrap::remote_branch_exists(git_url(), branch)) {
-            cx().warning(context::generic,
-                         "{} has no remote {} branch, switching to {}", repo_, branch,
-                         fallback);
-            branch = fallback;
+        auto branch             = task_conf().mo_branch();
+        auto url                = git_url();
+
+        // check preferred branch and org
+        if (!git_wrap::remote_branch_exists(url, branch)) {
+            const auto fallback_org = task_conf().mo_fallback_org();
+            const auto fallback     = task_conf().mo_fallback_branch();
+            if (!fallback.empty()) {
+                cx().warning(context::generic,
+                             "{} has no remote {} branch, switching to {}", repo_,
+                             branch, fallback);
+                branch = fallback;
+            }
+
+            // check fallback branch
+            if (!git_wrap::remote_branch_exists(url, branch)) {
+                if (!fallback_org.empty()) {
+                    cx().warning(context::generic,
+                                 "{} has no remote {} branch, switching to {} from {}",
+                                 repo_, branch, fallback, fallback_org);
+                    url    = make_git_url(fallback_org, repo_);
+                    branch = task_conf().mo_branch();
+                }
+            }
         }
 
         // clone/pull
-        run_tool(make_git().url(git_url()).branch(branch).root(source_path()));
+        run_tool(make_git().url(url).branch(branch).root(source_path()));
     }
 
     void modorganizer::do_build_and_install()
